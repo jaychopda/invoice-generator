@@ -39,10 +39,36 @@ def update_company_counts():
         cursor.close()
         db_connection.close()
         print("Company counts updated successfully.")
+        print("\n" + "-"*50 + "\n")
 
 def change_company_details():
     print("Changing company details...")
-    # Add logic to change company details
+    cursor = db_connection.cursor()
+        
+    # Fetch and display company details
+    cursor.execute("SELECT * FROM ownCompany")
+    company = cursor.fetchone()
+
+    details = [
+        ["companyName", company[1]],
+        ["name", company[2]],
+        ["GSTIN", company[3]],
+        ["email", company[4]],
+        ["mobileNum", company[3]],
+        ["address", company[2]],
+        
+    ]
+
+    for i in range(len(details)):
+        print(f"Press 1. to change {details[i][0]}: {details[i][1]}")
+        print("Press 0. to keep it same")
+        choice = int(input("Enter your choice: "))
+        if choice == 1:
+            new_value = input(f"Enter new {details[i][0]}: ")
+            cursor.execute(f"UPDATE ownCompany SET {details[i][0]} = %s WHERE id = 1", (new_value,))
+            db_connection.commit()
+            print(f"{details[i][0]} updated successfully.")
+            print("\n" + "-"*50 + "\n")
 
 def add_customer_details():
     print("Adding customer details...")
@@ -62,10 +88,42 @@ def add_customer_details():
         cursor.close()
         db_connection.close()
         print("Customer details added successfully.")
+        print("\n" + "-"*50 + "\n")
 
 def change_customer_details():
     print("Changing customer details...")
-    # Add logic to change customer details
+    cursor = db_connection.cursor()
+        
+    # Fetch and display all customers
+    cursor.execute("SELECT id, name, companyName FROM customerDetails")
+    customers = cursor.fetchall()
+    print("Select a customer:")
+    for customer in customers:
+        print(f"{customer[0]}. {customer[1]} from {customer[2]}")
+    customer_id = int(input("Enter customer ID: "))
+
+    cursor.execute("SELECT * FROM customerDetails where id=%s", (customer_id,))
+    customer = cursor.fetchone()
+
+    details = [
+        ["companyName", customer[1]],
+        ["name", customer[2]],
+        ["mobileNum", customer[3]],
+        ["email", customer[4]],
+        ["GSTIN", customer[5]],
+        ["address", customer[6]]
+    ]
+
+    for i in range(len(details)):
+        print(f"Press 1. to change {details[i][0]}: {details[i][1]}")
+        print("Press 0. to keep it same")
+        choice = int(input("Enter your choice: "))
+        if choice == 1:
+            new_value = input(f"Enter new {details[i][0]}: ")
+            cursor.execute(f"UPDATE customerDetails SET {details[i][0]} = %s WHERE id = %s", (new_value, customer_id))
+            db_connection.commit()
+            print(f"{details[i][0]} updated successfully.")
+            print("\n" + "-"*50 + "\n")
 
 def add_product_details():
     print("Adding product details...")
@@ -84,12 +142,49 @@ def add_product_details():
         cursor.close()
         db_connection.close()
         print("Product details added successfully.")
+        print("\n" + "-"*100 + "\n")
 
 def change_product_details():
     print("Changing product details...")
-    # Add logic to change product details
+    cursor = db_connection.cursor()
+        
+    # Fetch and display all products
+    cursor.execute("SELECT id, productName FROM stock")
+    products = cursor.fetchall()
+    print("Select a product:")
+    print("\n" + "-"*50 + "\n")
+    for product in products:
+        print(f"{product[0]}. {product[1]}")
+    print("\n" + "-"*50 + "\n")
+    product_id = int(input("Enter product ID: "))
+    print()
+
+    cursor.execute("SELECT * FROM stock where id=%s", (product_id,))
+    product = cursor.fetchone()
+
+    details = [
+        ["productName", product[1]],
+        ["quantity", product[2]],
+        ["unit", product[3]],
+        ["price", product[4]],
+    ]
+
+    for i in range(len(details)):
+        print("\n" + "-"*50 + "\n")
+        print(f"Press 1. to change {details[i][0]}: {details[i][1]}")
+        print("Press 0. to keep it same")
+        print("\n" + "-"*50 + "\n")
+        choice = int(input("Enter your choice: "))
+        print()
+        if choice == 1:
+            new_value = input(f"Enter new {details[i][0]}: ")
+            cursor.execute(f"UPDATE stock SET {details[i][0]} = %s, totalAmount={details[1][1]*details[3][1]} WHERE id = %s", (new_value, product_id))
+            db_connection.commit()
+            print(f"{details[i][0]} updated successfully.")
+            print("\n" + "-"*50 + "\n")
 
 def makeInvoice():
+    print("\n" + "-"*100 + "\n")
     db_connection = connect_to_database()
     if db_connection:
         cursor = db_connection.cursor()
@@ -98,9 +193,12 @@ def makeInvoice():
         cursor.execute("SELECT id, name, companyName FROM customerDetails")
         customers = cursor.fetchall()
         print("Select a customer:")
+        print("\n" + "-"*50 + "\n")        
         for customer in customers:
             print(f"{customer[0]}. {customer[1]} from {customer[2]}")
+        print("\n" + "-"*50 + "\n")
         customer_id = int(input("Enter customer ID: "))
+        print()
         
         # Fetch and display all products
         cursor.execute("SELECT id, productName FROM stock")
@@ -108,8 +206,10 @@ def makeInvoice():
         print("Select products:")
         selected_products = []
         while True:
+            print("\n" + "-"*50 + "\n")
             for product in products:
                 print(f"{product[0]}. {product[1]}")
+            print("\n" + "-"*50 + "\n")
             product_id = int(input("Enter product ID (or 0 to finish): "))
             if product_id == 0:
                 break
@@ -153,37 +253,42 @@ def makeInvoice():
         cursor.close()
         db_connection.close()
         print("Invoice created, stock updated, and sales recorded successfully.")
+        print()
+        print("\n" + "-"*100 + "\n")
 
 def changeOrAddComapnyCustomerOrProduct():
-    print("Press 1. to change or edit in own company details")
-    print("Press 2. to add customer details")
-    print("Press 3. to change or edit in customer details")
-    print("Press 4. to add product details")
-    print("Press 5. to change or edit in product details")
-
-    choice = int(input("Enter your choice: "))
-    
-    switcher = {
-        1: change_company_details,
-        2: add_customer_details,
-        3: change_customer_details,
-        4: add_product_details,
-        5: change_product_details
-    }
-    
-    func = switcher.get(choice, lambda: print("Invalid choice"))
-    func()
+    while True:
+        print()
+        print("\n" + "-"*100 + "\n")
+        print("Press 1. to change or edit in own company details")
+        print("Press 2. to add customer details")
+        print("Press 3. to change or edit in customer details")
+        print("Press 4. to add product details")
+        print("Press 5. to change or edit in product details")
+        print("Press 6. to make invoice")
+        print("Press 0. to exit")
+        print("\n" + "-"*100 + "\n")
+        print()
+        choice = int(input("Enter your choice: "))
+        print()
+        if choice == 0:
+            break
+        switcher = {
+            1: change_company_details,
+            2: add_customer_details,
+            3: change_customer_details,
+            4: add_product_details,
+            5: change_product_details,
+            6: makeInvoice
+        }
+        
+        func = switcher.get(choice, lambda: print("Invalid choice"))
+        func()
 
 # Example usage
 if __name__ == "__main__":
     db_connection = connect_to_database()
     if db_connection:
-        
-        makeInvoice()
-        # Update company counts before performing other operations
-        
-        # Perform database operations
         changeOrAddComapnyCustomerOrProduct()
-        makeInvoice()
         db_connection.close()
 
