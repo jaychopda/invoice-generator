@@ -1,0 +1,26 @@
+c name
+c address
+c gst
+c email
+c mobile num
+c invoice count
+c product count
+
+
+c sales
+	product name
+	p quntitiy
+	p name
+	p price
+	p gst
+	p total amount
+	p sales date
+
+c stock(product list)
+	product name
+	p quntitiy
+	p name
+	p price
+	p total amount
+
+customer details
