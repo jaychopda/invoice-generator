@@ -287,12 +287,11 @@ def analysisOfStockData():
         cursor.execute("SELECT productName, quantity FROM stock")
         stock = cursor.fetchall()
         
-        product_names = [f"{item[0]} ({item[1]} tonnes)" for item in stock]
+        product_names = [item[0] for item in stock]
         quantities = [item[1] for item in stock]
         
         plt.pie(quantities, labels=product_names, autopct='%1.1f%%')
         plt.title('Stock Data Analysis')
-        plt.legend(product_names, title="Products", loc="center left", bbox_to_anchor=(1, 0, 0.5, 1))
         plt.show()
     except mysql.connector.Error as err:
         print(f"Database error: {err}")
@@ -341,14 +340,13 @@ def analysisOfSalesData():
         total_amounts = [sale[1] for sale in sales]
         
         customer_names = []
-        for customer_id, total_amount in zip(customer_ids, total_amounts):
+        for customer_id in customer_ids:
             cursor.execute("SELECT name FROM customerDetails WHERE id = %s", (customer_id,))
             customer_name = cursor.fetchone()[0]
-            customer_names.append(f"{customer_name} (₹{total_amount:.2f})")
+            customer_names.append(customer_name)
         
         plt.pie(total_amounts, labels=customer_names, autopct='%1.1f%%')
         plt.title('Sales Data Analysis')
-        plt.legend(customer_names, title="Customers", loc="center left", bbox_to_anchor=(1, 0, 0.5, 1))
         plt.show()        
     except mysql.connector.Error as err:
         print(f"Database error: {err}")
