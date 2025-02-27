@@ -1,3 +1,4 @@
+import os
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 from reportlab.lib import colors
@@ -8,9 +9,17 @@ def generate_invoice(cursor, invoice_number, date, customer, customerAddress, cu
     companyName = "Radhe Enterprise"
     bank_details = "Bank Name: AXIS BANK, WAGHAVADI\nBank Account No.: 923020014346110\nBank IFSC code: UTIB0000200\nAccount Holder's Name: Paresh Chopda"
 
-    customerDetails = f"Company Name: {customerComapnyName}\nCustomer Name: {customer}\nPhone Number: {customerPhoneNum}\nEmail: {customerEmail}\nGSTIN: {customerGSTIN}\nAddress: {customerAddress}"
+    customerDetails = f"{customer}\nPhone No.: {customerPhoneNum}\nEmail: {customerEmail}\nGSTIN: {customerGSTIN}\nAddress: {customerAddress}"
 
-    c = canvas.Canvas(filename, pagesize=A4)
+    # Ensure the invoice folder exists
+    invoice_folder = "invoice"
+    if not os.path.exists(invoice_folder):
+        os.makedirs(invoice_folder)
+    
+    # Full path for the invoice file
+    full_path = os.path.join(invoice_folder, filename)
+
+    c = canvas.Canvas(full_path, pagesize=A4)
     width, height = A4
     
     # Use a built-in font that supports the rupee sign
@@ -26,21 +35,24 @@ def generate_invoice(cursor, invoice_number, date, customer, customerAddress, cu
     c.drawText(text)
     
     c.setFont("Helvetica-Bold", 14)
-    c.drawString(250, height - 140, "Tax Invoice")
+    c.drawString(250, height - 160, "Tax Invoice")
     
     # Bill To and Invoice Details
     c.setFont("Helvetica-Bold", 12)
-    c.drawString(50, height - 170, "Bill To")
-    c.drawString(400, height - 170, "Invoice Details")
+    c.drawString(50, height - 190, "Bill To")
+    c.drawString(400, height - 190, "Invoice Details")
+    c.drawString(50, height - 210, customerComapnyName)
     
     c.setFont("Helvetica", 10)
-    text = c.beginText(50, height - 190)
+    text = c.beginText(50, height - 230)
     # text.textLine(customer)
+    c.setFont("Helvetica-Bold", 10)
     for line in customerDetails.split('\n'):
         text.textLine(line)
+        c.setFont("Helvetica", 10)
     c.drawText(text)
     
-    text = c.beginText(400, height - 190)
+    text = c.beginText(400, height - 230)
     text.textLine(f"Invoice No.: {invoice_number}")
     text.textLine(f"Date: {date}")
     c.drawText(text)
@@ -56,7 +68,7 @@ def generate_invoice(cursor, invoice_number, date, customer, customerAddress, cu
         price = product[1]
         total = price * quantity
         subtotal += total
-        table_data.append([count, item, "", quantity, "tonne", f"{price:.2f}", f"{(price * gst_rate / 100):.2f} ({gst_rate:.1f}%)", f"{total:.2f}"])
+        table_data.append([count, item, "2508", quantity, "tonne", f"{price:.2f}", f"{(price * gst_rate / 100):.2f} ({gst_rate:.1f}%)", f"{total:.2f}"])
         count += 1
     
     gst_amount = (subtotal * gst_rate) / 100
@@ -77,44 +89,29 @@ def generate_invoice(cursor, invoice_number, date, customer, customerAddress, cu
     
     # Draw Table
     table.wrapOn(c, width, height)
-    table.drawOn(c, 20, height - 400)  # Moved slightly to the left
+    table.drawOn(c, 20, height - 440)  # Adjusted position
     
     # Amount Summary
     c.setFont("Helvetica-Bold", 12)
-    c.drawString(400, height - 420, "Sub Total: ")
-    c.drawString(500, height - 420, f"\u20B9{subtotal:.2f}")
-    c.drawString(400, height - 440, f"IGST@{gst_rate}%: ")
-    c.drawString(500, height - 440, f"\u20B9{gst_amount:.2f}")
-    c.drawString(400, height - 460, "Total: ")
-    c.drawString(500, height - 460, f"\u20B9{final_total:.2f}")
+    c.drawString(400, height - 460, "Sub Total: ")
+    c.drawString(500, height - 460, f"\u20B9{subtotal:.2f}")
+    c.drawString(400, height - 480, f"IGST@{gst_rate}%: ")
+    c.drawString(500, height - 480, f"\u20B9{gst_amount:.2f}")
+    c.drawString(400, height - 500, "Total: ")
+    c.drawString(500, height - 500, f"\u20B9{final_total:.2f}")
     
     # Bank Details
     c.setFont("Helvetica-Bold", 12)
-    c.drawString(50, height - 500, "Pay To:")
+    c.drawString(50, height - 540, "Pay To:")
     c.setFont("Helvetica", 10)
-    text = c.beginText(50, height - 520)
+    text = c.beginText(50, height - 560)
     for line in bank_details.split('\n'):
         text.textLine(line)
     c.drawText(text)
     
     # Authorized Signatory
     c.setFont("Helvetica-Bold", 12)
-    c.drawString(400, height - 550, "Authorized Signatory")
+    c.drawString(400, height - 590, "Authorized Signatory")
     
     c.save()
     print(f"Invoice {filename} generated successfully!")
-
-# # Example Usage
-# invoice_number = "16"
-# date = "25-01-2025"
-
-# customer = "Raveej Ranjan kumar"
-# customerAddress = "Block 827, Bhojasar\nAt-Takodi, Ta-Chanasma, Di- Patan-384221, Gujarat, India.\nGSTIN Number: 24BFMPS8000J1Z9\nState: 24-Gujarat"
-# items = [("Bentonite powder", 40, 3000.00, 120000.00)]
-# subtotal = 120000.00
-# gst_rate = 5  # GST in percentage
-# discount = 0.00  # Discount amount
-
-
-# # Generate Invoice PDF
-# generate_invoice(invoice_number, date, customer, customerAddress, items, subtotal, gst_rate, discount, bank_details, "invoice.pdf")
